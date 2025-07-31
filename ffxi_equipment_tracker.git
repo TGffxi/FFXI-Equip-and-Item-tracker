@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FFXI Equipment Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    input, select, textarea, button {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      border: 1px solid #444;
+      padding: 5px;
+      margin: 2px;
+    }
+    a { color: #4da6ff; }
+    table.dataTable {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+    }
+    table.dataTable thead {
+      background-color: #222;
+    }
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <h2>FFXI Equipment Tracker</h2>
+  <input type="file" id="gsfile" onchange="importGSExport()" />
+  <button onclick="saveProgress()">Save</button>
+  <button onclick="resetTracker()">Clear All</button>
+  <span id="save-status" style="margin-left:10px;color:green;"></span>
+
+  <h3>Add New Item</h3>
+  <input type="text" id="new_name" placeholder="Item Name" />
+  <input type="text" id="new_slot" placeholder="Slot" />
+  <input type="text" id="new_augments" placeholder="Augments" />
+  <input type="number" id="new_count" value="1" min="1" />
+  <button onclick="addNewItem()">Add Item</button>
+
+  <br><br>
+  <table id="equipment-table" class="display" width="100%">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Slot</th>
+        <th>Count</th>
+        <th>Augments</th>
+        <th>Storage</th>
+        <th>Usage</th>
+        <th>Upgrade</th>
+        <th>To-Do</th>
+        <th>Done?</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+let table;
+
+document.addEventListener("DOMContentLoaded", () => {
+  table = $('#equipment-table').DataTable({
+    paging: true,
+    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+    pageLength: 50,
+    searching: true,
+    ordering: true,
+    autoWidth: true,
+  });
+  loadProgress();
+});
+
+function saveProgress() {
+  const data = {};
+  table.rows().every(function() {
+    const row = this.node();
+    const name = row.cells[0]?.innerText?.trim();
+    const slot = row.cells[1]?.innerText?.trim();
+    const count = row.cells[2]?.innerText?.trim();
+    const augments = row.cells[3]?.innerText?.trim();
+    const key = name + "::" + augments;
+    const safe_id = (name + augments).replace(/[^a-zA-Z0-9]/g, '');
+    const location = document.getElementById(`location_${safe_id}`)?.value || "";
+    const usage = document.getElementById(`usage_${safe_id}`)?.value || "";
+    const upgrade = document.getElementById(`upgrade_${safe_id}`)?.value || "";
+    const todo = document.getElementById(`todo_${safe_id}`)?.value || "";
+    const done = document.getElementById(`done_${safe_id}`)?.checked || false;
+    const manual = document.getElementById(`delete_${safe_id}`) !== null;
+
+    data[key] = { name, slot, count, augments, location, usage, upgrade, todo, done, manual };
+  });
+  localStorage.setItem("ffxi_tracker_augmented", JSON.stringify(data));
+  const status = document.getElementById("save-status");
+  if (status) {
+    status.textContent = "Progress saved ✓";
+    setTimeout(() => status.textContent = "", 3000);
+  }
+}
+
+function loadProgress() {
+  const saved = localStorage.getItem("ffxi_tracker_augmented");
+  if (!saved) return;
+  const data = JSON.parse(saved);
+  const table = $('#equipment-table').DataTable();
+  table.clear();
+  Object.entries(data).forEach(([key, item]) => {
+    const safe_id = (item.name + item.augments).replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${item.name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const deleteBtn = item.manual ? `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>` : "";
+    const row = [
+      `<a href="${bg}" target="_blank">${item.name}</a>`,
+      item.slot || "",
+      item.count || 1,
+      item.augments || "",
+      `<select id="location_${safe_id}"><option value="${item.location}">${item.location}</option></select>`,
+      `<select id="usage_${safe_id}"><option value="${item.usage}">${item.usage}</option></select>`,
+      `<input type="text" id="upgrade_${safe_id}" value="${item.upgrade || ""}" />`,
+      `<textarea id="todo_${safe_id}">${item.todo || ""}</textarea>`,
+      `<input type="checkbox" id="done_${safe_id}" ${item.done ? "checked" : ""} onchange="updateProgress()" />`,
+      deleteBtn
+    ];
+    table.row.add(row).draw();
+  });
+}
+
+function resetTracker() {
+  if (confirm("Are you sure you want to delete all items and saved data?")) {
+    localStorage.removeItem("ffxi_tracker_augmented");
+    table.clear().draw();
+    alert("All items and saved data have been deleted.");
+  }
+}
+
+function updateProgress() {
+  saveProgress();
+}
+
+function addNewItem() {
+  const name = document.getElementById("new_name").value.trim();
+  const slot = document.getElementById("new_slot").value.trim();
+  const augments = document.getElementById("new_augments").value.trim();
+  const count = parseInt(document.getElementById("new_count").value.trim()) || 1;
+  if (!name) return alert("Item name is required.");
+  const safe_id = (name + augments).replace(/[^a-zA-Z0-9]/g, '');
+  const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+  const row = [
+    `<a href="${bg}" target="_blank">${name}</a>`,
+    slot,
+    count,
+    augments,
+    `<select id="location_${safe_id}"><option value="inventory">inventory</option></select>`,
+    `<select id="usage_${safe_id}"><option value=""> </option></select>`,
+    `<input type="text" id="upgrade_${safe_id}" />`,
+    `<textarea id="todo_${safe_id}"></textarea>`,
+    `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+    `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>`
+  ];
+  table.row.add(row).draw();
+  saveProgress();
+}
+
+function deleteManualItem(safe_id) {
+  const table = $('#equipment-table').DataTable();
+  table.rows().every(function() {
+    const row = this.node();
+    if (row.querySelector(`#delete_${safe_id}`)) {
+      table.row(row).remove().draw();
+    }
+  });
+  saveProgress();
+}
+
+function importGSExport() {
+  const fileInput = document.getElementById('gsfile');
+  if (!fileInput.files.length) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    const patternSimple = /([a-zA-Z_]+)\s*=\s*(['"])(.*?)\2/g;
+    const patternNamed = /([a-zA-Z_]+)\s*=\s*{[^}]*name\s*=\s*(['"])(.*?)\2[^}]*}/g;
+    const parsed = {};
+    const slots = {};
+    const augments = {};
+
+    let match;
+    while ((match = patternSimple.exec(content)) !== null) {
+      const name = match[3].trim();
+      const key = name;
+      parsed[key] = (parsed[key] || 0) + 1;
+      slots[key] = match[1];
+    }
+
+    while ((match = patternNamed.exec(content)) !== null) {
+      const name = match[3].trim();
+      const slot = match[1];
+      const augMatch = content.slice(match.index).match(/augments\s*=\s*{([^}]*)}/);
+      const augList = augMatch ? [...augMatch[1].matchAll(/['"]([^'"]+)['"]/g)].map(m => m[1]) : [];
+      const augText = augList.join(", ");
+      const key = name + "::" + augText;
+      parsed[key] = (parsed[key] || 0) + 1;
+      augments[key] = augText;
+      slots[key] = slot;
+    }
+
+    const rows = table.rows().nodes().toArray();
+
+    if (rows.length === 0) {
+      // Full import
+      Object.entries(parsed).forEach(([fullKey, count]) => {
+        const [name, aug = ""] = fullKey.split("::");
+        const slot = slots[fullKey] || "";
+        const safe_id = (name + aug).replace(/[^a-zA-Z0-9]/g, '');
+        const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+        const row = [
+          `<a href="${bg}" target="_blank">${name}</a>`,
+          slot,
+          count,
+          aug,
+          `<select id="location_${safe_id}"><option value="inventory">inventory</option></select>`,
+          `<select id="usage_${safe_id}"><option value=""> </option></select>`,
+          `<input type="text" id="upgrade_${safe_id}" />`,
+          `<textarea id="todo_${safe_id}"></textarea>`,
+          `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+          ``
+        ];
+        table.row.add(row).draw();
+      });
+    } else {
+      // Update import
+      rows.forEach(row => {
+        const name = row.cells[0]?.innerText?.trim();
+        const augments = row.cells[3]?.innerText?.trim();
+        const key = name + (augments ? "::" + augments : "");
+        const safe_id = (name + augments).replace(/[^a-zA-Z0-9]/g, '');
+        const countInCell = row.cells[2]?.innerText?.trim();
+        const hasDelete = row.querySelector(`#delete_${safe_id}`) !== null;
+        if (!parsed[key]) {
+          if (!hasDelete) table.row(row).remove();
+        } else {
+          row.cells[2].innerText = parsed[key]; // update count
+          delete parsed[key];
+        }
+      });
+
+      Object.entries(parsed).forEach(([fullKey, count]) => {
+        const [name, aug = ""] = fullKey.split("::");
+        const slot = slots[fullKey] || "";
+        const safe_id = (name + aug).replace(/[^a-zA-Z0-9]/g, '');
+        const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+        const row = [
+          `<a href="${bg}" target="_blank">${name}</a>`,
+          slot,
+          count,
+          aug,
+          `<select id="location_${safe_id}"><option value="inventory">inventory</option></select>`,
+          `<select id="usage_${safe_id}"><option value=""> </option></select>`,
+          `<input type="text" id="upgrade_${safe_id}" />`,
+          `<textarea id="todo_${safe_id}"></textarea>`,
+          `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+          ``
+        ];
+        table.row.add(row).draw();
+      });
+    }
+
+    saveProgress();
+    alert("Import completed.");
+  };
+  reader.readAsText(fileInput.files[0]);
+}
+</script>
+</body>
+</html>
