@@ -5,9 +5,375 @@
   <meta charset="UTF-8" />
   <title>FFXI Equipment Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js">
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function previewGearSetItems(items, jobCode) {
+  const tbody = document.querySelector("#gearset-preview-table tbody");
+  tbody.innerHTML = "";
+  const existingNames = new Set();
+  table.rows().every(function() {
+    const row = this.node();
+    const raw = row.cells[0]?.querySelector("a")?.textContent || "";
+    const norm = normalizeName(raw);
+    if (norm) existingNames.add(norm);
+  });
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const tr = document.createElement("tr");
+    const isExisting = existingNames.has(normalizeName(name));
+    tr.className = isExisting ? "preview-existing" : "preview-new";
+    tr.setAttribute("data-existing", isExisting ? "1" : "0");
+    tr.innerHTML = `
+      <td><input type="checkbox" id="check_${safe_id}" /></td>
+      <td><a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function renderGearSetPreview(items) {
+  const tbody = document.querySelector("#gearset-preview-table tbody");
+  tbody.innerHTML = "";
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const tr = document.createElement("tr");
+    tr.className = "preview-new";
+    tr.setAttribute("data-existing", "0");
+    tr.setAttribute("data-name", normalizeName(name));
+    tr.innerHTML = `
+      <td><input type="checkbox" id="check_${safe_id}" /></td>
+      <td><a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function highlightExistingInPreview() {
+  const existingNormalized = new Set();
+  table.rows().every(function() {
+    const row = this.node();
+    const anchor = row.cells[0]?.querySelector("a");
+    if (anchor) {
+      const name = anchor.textContent.trim();
+      const norm = normalizeName(name);
+      existingNormalized.add(norm);
+    }
+  });
+
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const norm = tr.getAttribute("data-name");
+    if (existingNormalized.has(norm)) {
+      tr.classList.remove("preview-new");
+      tr.classList.add("preview-existing");
+      tr.setAttribute("data-existing", "1");
+    }
+  });
+}
+
+function previewGearSetItems(items, jobCode) {
+  renderGearSetPreview(items);
+  highlightExistingInPreview();
+}
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function applySelectedGearItems() {
+  const checkboxes = document.querySelectorAll("#gearset-preview-table input[type=checkbox]:checked");
+  checkboxes.forEach(cb => {
+    const id = cb.id.replace("check_", "");
+    const label = cb.parentElement.nextElementSibling.innerText.trim();
+    const name = label.split(" AH")[0];
+    const safe_id = id;
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const row = [
+      `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a>`,
+      '',
+      1,
+      '',
+      `<select id="location_${safe_id}">${locationOptions}</select>`,
+      `<select id="usage_${safe_id}">${usageOptions}</select>`,
+      `<input type="text" id="upgrade_${safe_id}" />`,
+      `<textarea id="todo_${safe_id}"></textarea>`,
+      `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+      `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>`
+    ];
+    const newRow = table.row.add(row).draw().node();
+    newRow.classList.add("row-gearset");
+    newRow.setAttribute("data-source", "gearset");
+    if (!document.getElementById(`done_${safe_id}`).checked) {
+      newRow.style.backgroundColor = "#6c1e1e"; // dark red
+    }
+    document.getElementById(`todo_${safe_id}`).value = "Obtain " + name;
+  });
+  saveProgress();
+  document.getElementById("save-status").textContent = "Gearset items added ✓";
+setTimeout(() => document.getElementById("save-status").textContent = "", 3000);
+}
+
+</script>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js">
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function previewGearSetItems(items, jobCode) {
+  const tbody = document.querySelector("#gearset-preview-table tbody");
+  tbody.innerHTML = "";
+  const existingNames = new Set();
+  table.rows().every(function() {
+    const row = this.node();
+    const raw = row.cells[0]?.querySelector("a")?.textContent || "";
+    const norm = normalizeName(raw);
+    if (norm) existingNames.add(norm);
+  });
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const tr = document.createElement("tr");
+    const isExisting = existingNames.has(normalizeName(name));
+    tr.className = isExisting ? "preview-existing" : "preview-new";
+    tr.setAttribute("data-existing", isExisting ? "1" : "0");
+    tr.innerHTML = `
+      <td><input type="checkbox" id="check_${safe_id}" /></td>
+      <td><a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function renderGearSetPreview(items) {
+  const tbody = document.querySelector("#gearset-preview-table tbody");
+  tbody.innerHTML = "";
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const tr = document.createElement("tr");
+    tr.className = "preview-new";
+    tr.setAttribute("data-existing", "0");
+    tr.setAttribute("data-name", normalizeName(name));
+    tr.innerHTML = `
+      <td><input type="checkbox" id="check_${safe_id}" /></td>
+      <td><a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function highlightExistingInPreview() {
+  const existingNormalized = new Set();
+  table.rows().every(function() {
+    const row = this.node();
+    const anchor = row.cells[0]?.querySelector("a");
+    if (anchor) {
+      const name = anchor.textContent.trim();
+      const norm = normalizeName(name);
+      existingNormalized.add(norm);
+    }
+  });
+
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const norm = tr.getAttribute("data-name");
+    if (existingNormalized.has(norm)) {
+      tr.classList.remove("preview-new");
+      tr.classList.add("preview-existing");
+      tr.setAttribute("data-existing", "1");
+    }
+  });
+}
+
+function previewGearSetItems(items, jobCode) {
+  renderGearSetPreview(items);
+  highlightExistingInPreview();
+}
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function applySelectedGearItems() {
+  const checkboxes = document.querySelectorAll("#gearset-preview-table input[type=checkbox]:checked");
+  checkboxes.forEach(cb => {
+    const id = cb.id.replace("check_", "");
+    const label = cb.parentElement.nextElementSibling.innerText.trim();
+    const name = label.split(" AH")[0];
+    const safe_id = id;
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const row = [
+      `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a>`,
+      '',
+      1,
+      '',
+      `<select id="location_${safe_id}">${locationOptions}</select>`,
+      `<select id="usage_${safe_id}">${usageOptions}</select>`,
+      `<input type="text" id="upgrade_${safe_id}" />`,
+      `<textarea id="todo_${safe_id}"></textarea>`,
+      `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+      `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>`
+    ];
+    const newRow = table.row.add(row).draw().node();
+    newRow.classList.add("row-gearset");
+    newRow.setAttribute("data-source", "gearset");
+    if (!document.getElementById(`done_${safe_id}`).checked) {
+      newRow.style.backgroundColor = "#6c1e1e"; // dark red
+    }
+    document.getElementById(`todo_${safe_id}`).value = "Obtain " + name;
+  });
+  saveProgress();
+  document.getElementById("save-status").textContent = "Gearset items added ✓";
+setTimeout(() => document.getElementById("save-status").textContent = "", 3000);
+}
+
+</script>
   <style>
     body {
       background-color: #121212;
@@ -35,7 +401,36 @@
       background-color: #1e1e1e;
       color: #f0f0f0;
     }
-  </style>
+  
+/* Gearset Preview Styles */
+.row-gearset.not-done {
+  background-color: #6c1e1e !important;
+}
+
+#gearset-preview {
+  margin-top: 20px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  padding: 10px;
+}
+#gearset-preview h4 {
+  margin-bottom: 10px;
+}
+#gearset-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+#gearset-preview-table th, #gearset-preview-table td {
+  border: 1px solid #333;
+  padding: 5px;
+  text-align: left;
+}
+.preview-existing { background-color: #2e7d32; }  /* dark green */
+.preview-new { background-color: #1565c0; }       /* dark blue */
+.row-manual { background-color: #8e6f00; }        /* dark gold */
+.row-gearset { background-color: #10394f; }       /* muted blue */
+
+</style>
 </head>
 <body>
   <h2>FFXI Equipment Tracker</h2>
@@ -50,6 +445,52 @@
   <input type="text" id="new_augments" placeholder="Augments" />
   <input type="number" id="new_count" value="1" min="1" />
   <button onclick="addNewItem()">Add Item</button>
+
+  <!-- Gearset To‑Do Section -->
+  <h3>Load Gear Sets from BG‑Wiki</h3>
+  <label for="gear_job">Job:</label>
+  <select id="gear_job">
+    <option value="">Select Job</option>
+    <option value="war">WAR</option>
+    <option value="mnk">MNK</option>
+    <option value="whm">WHM</option>
+    <option value="blm">BLM</option>
+    <option value="rdm">RDM</option>
+    <option value="thf">THF</option>
+    <option value="pld">PLD</option>
+    <option value="drk">DRK</option>
+    <option value="bst">BST</option>
+    <option value="brd">BRD</option>
+    <option value="rng">RNG</option>
+    <option value="sam">SAM</option>
+    <option value="nin">NIN</option>
+    <option value="drg">DRG</option>
+    <option value="smn">SMN</option>
+    <option value="blu">BLU</option>
+    <option value="cor">COR</option>
+    <option value="pup">PUP</option>
+    <option value="dnc">DNC</option>
+    <option value="sch">SCH</option>
+    <option value="geo">GEO</option>
+    <option value="run">RUN</option>
+  </select>
+  <button onclick="loadGearSet()">Load Gear Set</button>
+<div id="gearset-preview">
+  <h4>Gearset Preview</h4>
+  <label><input type="checkbox" id="onlyMissing" onchange="filterPreview()"> Show only missing items</label><br>
+  <button onclick="selectAllPreview()">Select All</button>
+  <button onclick="deselectAllPreview()">Deselect All</button>
+  <table id="gearset-preview-table">
+    <thead><tr><th>Select</th><th>Item</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="applySelectedGearItems()">Add Selected Items</button>
+</div>
+
+
+
+
+
 
   <br><br>
   <table id="equipment-table" class="display" width="100%">
@@ -85,11 +526,226 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProgress();
 });
 
+/*
+ * Gearset fetching and parsing
+ *
+ * This section adds the ability to fetch pre‑computed gear sets from the
+ * BG‑Wiki job guide repository.  When the user selects a job and clicks
+ * "Load Gear Set" the application fetches a Markdown guide for that job
+ * via a CORS proxy (allorigins) and parses the equipment lists.  Any items
+ * not already present in the tracker will be added as new rows with the
+ * Usage column pre‑selected to the appropriate job.  Existing rows are
+ * left untouched.  Progress is automatically saved after items are added.
+ */
+
+// Map job codes to the corresponding Markdown file in the bg_job_guides
+// repository.  We fetch these files through a CORS proxy so they can be
+// accessed directly from a file:// URL without running into cross‑origin
+// issues.  The previous implementation relied on api.allorigins.win, but
+// that service is often unavailable.  As a more reliable alternative we
+// use thingproxy.freeboard.io which proxies requests and adds permissive
+// CORS headers.  See https://github.com/IzaKastra/bg_job_guides for details.
+const jobGuideUrls = {
+  // rawcdn.githack.com provides a CDN backed by GitHub content with
+  // permissive CORS headers, making it suitable for fetch() calls from
+  // a local file:// origin. See https://rawcdn.githack.com for details.
+  war: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/war.md',
+  mnk: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/mnk.md',
+  whm: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/whm.md',
+  blm: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/blm.md',
+  rdm: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/rdm.md',
+  thf: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/thf.md',
+  pld: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/pld.md',
+  drk: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/drk.md',
+  bst: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/bst.md',
+  brd: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/brd.md',
+  rng: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/rng.md',
+  sam: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/sam.md',
+  nin: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/nin.md',
+  drg: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/drg.md',
+  smn: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/smn.md',
+  blu: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/blu.md',
+  cor: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/cor.md',
+  pup: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/pup.md',
+  dnc: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/dnc.md',
+  sch: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/sch.md',
+  geo: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/geo.md',
+  run: 'https://rawcdn.githack.com/IzaKastra/bg_job_guides/main/run.md'
+};
+
+// Location options replicated from the Add New Item form; reused when
+// generating new rows.  This string must stay in sync with the select
+// element in the table definition above.  If new locations are added in
+// the future, update this constant accordingly.
+const locationOptions = `
+  <option value="inventory">inventory</option>
+  <option value="safe">safe</option>
+  <option value="safe2">safe2</option>
+  <option value="storage">storage</option>
+  <option value="locker">locker</option>
+  <option value="satchel">satchel</option>
+  <option value="sack">sack</option>
+  <option value="case">case</option>
+  <option value="wardrobe">wardrobe</option>
+  <option value="wardrobe2">wardrobe2</option>
+  <option value="wardrobe3">wardrobe3</option>
+  <option value="wardrobe4">wardrobe4</option>
+  <option value="wardrobe5">wardrobe5</option>
+  <option value="wardrobe6">wardrobe6</option>
+  <option value="wardrobe7">wardrobe7</option>
+  <option value="wardrobe8">wardrobe8</option>
+`;
+
+// Usage options replicated from the Add New Item form.  These values
+// correspond to FFXI job abbreviations and an empty string for unset.
+const usageOptions = `
+  <option value=""></option>
+  <option value="WAR">WAR</option>
+  <option value="MNK">MNK</option>
+  <option value="WHM">WHM</option>
+  <option value="BLM">BLM</option>
+  <option value="RDM">RDM</option>
+  <option value="THF">THF</option>
+  <option value="PLD">PLD</option>
+  <option value="DRK">DRK</option>
+  <option value="BST">BST</option>
+  <option value="BRD">BRD</option>
+  <option value="RNG">RNG</option>
+  <option value="SAM">SAM</option>
+  <option value="NIN">NIN</option>
+  <option value="DRG">DRG</option>
+  <option value="SMN">SMN</option>
+  <option value="BLU">BLU</option>
+  <option value="COR">COR</option>
+  <option value="PUP">PUP</option>
+  <option value="DNC">DNC</option>
+  <option value="SCH">SCH</option>
+  <option value="GEO">GEO</option>
+  <option value="RUN">RUN</option>
+  <option value="Other">Other</option>
+`;
+
+// Parse a Markdown guide and extract all equipment items.  The guide
+// follows a structured template where each set lists its equipment using
+// lines of the form "|Slot = Item".  Slots such as BackAug, CaptionTop,
+// CaptionBottom, List, Background and Set Name are ignored.  Returns
+// an array of unique item names (strings).
+function parseGearItemsFromMD(text) {
+  const itemsSet = new Set();
+  const lines = text.split(/\n/);
+  // Only accept equipment fields that correspond to actual gear slots.
+  const validSlots = new Set([
+    'main','sub','range','ammo','head','neck','ear1','ear2','body','hands',
+    'ring1','ring2','back','waist','legs','feet'
+  ]);
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    // Only process lines that start with a pipe and contain an '=' separator
+    if (!trimmed.startsWith('|') || !trimmed.includes('=')) return;
+    const parts = trimmed.split('=');
+    if (parts.length < 2) return;
+    // remove leading '|' from slot and trim
+    const slot = parts[0].replace(/^\|+/, '').trim().toLowerCase();
+    // Only consider known equipment slots; ignore other fields (colors, captions, etc.)
+    if (!validSlots.has(slot)) return;
+    // Extract the value after the '=' sign; join in case there are additional '='
+    let value = parts.slice(1).join('=').trim();
+    if (!value) return;
+    // Some values may include comments or wiki markup like [[Item]]; remove
+    // surrounding brackets but keep the descriptive portion.
+    value = value.replace(/\[\[|\]\]/g, '').trim();
+    // Skip values that look like color codes.  Some fields define colors such
+    // as "#51414F" for border/background colours.  If the value consists of
+    // an optional leading # followed by exactly six hexadecimal digits, ignore.
+    // Skip colour codes (#RRGGBB) and other purely hexadecimal values.
+    if (/^#?[0-9A-Fa-f]{6}$/.test(value)) return;
+    // Skip any values that don't contain alphabetic characters (to avoid bare
+    // numbers or codes creeping in).  Most real item names contain letters.
+    if (!/[A-Za-z]/.test(value)) return;
+    if (value) itemsSet.add(value);
+  });
+  return Array.from(itemsSet);
+}
+
+// Add an array of item names to the DataTable.  Each item will only be
+// added if it does not already exist in the table (determined by
+// safe_id matching an existing usage select element).  After adding all
+// items, the table is redrawn and progress is saved.
+function addGearItemsToTable(items, jobCode) {
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    // skip if item already exists (identified by existence of usage select)
+    if (document.getElementById(`usage_${safe_id}`)) return;
+    // Build BG‑Wiki and FFXIAH URLs.  BG‑Wiki is used for detailed item
+    // descriptions while the AH link points to an FFXIAH item search.  The
+    // AH link is appended next to the item name as a small hyperlink so
+    // users can quickly check the market price or availability.  URL
+    // components are encoded to handle spaces and apostrophes correctly.
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const row = [
+      // Item cell: main link to BG‑Wiki plus a secondary AH link.
+      `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;margin-left:4px;" title="Search FFXI AH">AH</a>`,
+      '',
+      1,
+      '',
+      `<select id="location_${safe_id}">${locationOptions}</select>`,
+      `<select id="usage_${safe_id}">${usageOptions}</select>`,
+      `<input type="text" id="upgrade_${safe_id}" />`,
+      // To‑Do cell is pre‑populated with a default task prompting the
+      // player to acquire the item.  The user can modify this text as
+      // needed to track farming steps, quests, crafting requirements, etc.
+      `<textarea id="todo_${safe_id}"></textarea>`,
+      `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+      ``
+    ];
+    table.row.add(row).draw();
+    // set usage select to the job code (uppercase)
+    const usageSelect = document.getElementById(`usage_${safe_id}`);
+    if (usageSelect) usageSelect.value = jobCode.toUpperCase();
+  });
+  saveProgress();
+}
+
+// Main function triggered by the "Load Gear Set" button.  Determines
+// which job is selected, fetches the corresponding Markdown file,
+// parses it for items and adds them to the table.  Provides minimal
+// feedback to the user in case of errors.
+async function loadGearSet() {
+  const select = document.getElementById('gear_job');
+  const job = select ? select.value : '';
+  if (!job) {
+    alert('Please select a job to load gear sets.');
+    return;
+  }
+  const url = jobGuideUrls[job];
+  if (!url) {
+    alert(`No gear guide available for job: ${job.toUpperCase()}`);
+    return;
+  }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const mdText = await response.text();
+    const items = parseGearItemsFromMD(mdText);
+    if (!items.length) {
+      alert('No equipment items found in the guide.');
+      return;
+    }
+    previewGearSetItems(items, job);
+    alert(`${items.length} items loaded for ${job.toUpperCase()}.`);
+  } catch (err) {
+    console.error(err);
+    alert('Failed to load gear set. Please try again later.');
+  }
+}
+
 function saveProgress() {
   const data = {};
   table.rows().every(function() {
     const row = this.node();
-    const name = row.cells[0]?.innerText?.trim();
+    const anchors = row.cells[0]?.querySelectorAll("a");
+    const name = anchors?.[0]?.textContent.trim();
     const slot = row.cells[1]?.innerText?.trim();
     const count = row.cells[2]?.innerText?.trim();
     const augments = row.cells[3]?.innerText?.trim();
@@ -121,16 +777,23 @@ function loadProgress() {
   Object.entries(data).forEach(([key, item]) => {
     const safe_id = (item.name + item.augments).replace(/[^a-zA-Z0-9]/g, '');
     const bg = `https://www.bg-wiki.com/ffxi/${item.name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(item.name)}`;
     const deleteBtn = item.manual ? `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>` : "";
+    // When loading from saved data, recreate the item cell with both BG‑Wiki and
+    // AH links so that any previously saved rows retain the same experience as
+    // newly added ones.  The AH link is small to avoid clutter.
     const row = [
-      `<a href="${bg}" target="_blank">${item.name}</a>`,
+      `<a href="${bg}" target="_blank">${item.name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;margin-left:4px;" title="Search FFXI AH">AH</a>`,
       item.slot || "",
       item.count || 1,
       item.augments || "",
-      `<select id="location_${safe_id}"><option value="${item.location}">${item.location}</option></select>`,
-      `<select id="usage_${safe_id}"><option value="${item.usage}">${item.usage}</option></select>`,
+      `<select id="location_${safe_id}"><option value="inventory">inventory</option><option value="safe">safe</option><option value="safe2">safe2</option><option value="storage">storage</option><option value="locker">locker</option><option value="satchel">satchel</option><option value="sack">sack</option><option value="case">case</option><option value="wardrobe">wardrobe</option><option value="wardrobe2">wardrobe2</option><option value="wardrobe3">wardrobe3</option><option value="wardrobe4">wardrobe4</option><option value="wardrobe5">wardrobe5</option><option value="wardrobe6">wardrobe6</option><option value="wardrobe7">wardrobe7</option><option value="wardrobe8">wardrobe8</option></select>`,
+      `<select id="usage_${safe_id}"><option value=""></option><option value="WAR">WAR</option><option value="MNK">MNK</option><option value="WHM">WHM</option><option value="BLM">BLM</option><option value="RDM">RDM</option><option value="THF">THF</option><option value="PLD">PLD</option><option value="DRK">DRK</option><option value="BST">BST</option><option value="BRD">BRD</option><option value="RNG">RNG</option><option value="SAM">SAM</option><option value="NIN">NIN</option><option value="DRG">DRG</option><option value="SMN">SMN</option><option value="BLU">BLU</option><option value="COR">COR</option><option value="PUP">PUP</option><option value="DNC">DNC</option><option value="SCH">SCH</option><option value="GEO">GEO</option><option value="RUN">RUN</option><option value="Other">Other</option></select>`,
       `<input type="text" id="upgrade_${safe_id}" value="${item.upgrade || ""}" />`,
-      `<textarea id="todo_${safe_id}">${item.todo || ""}</textarea>`,
+      // Preserve any existing to‑do text, but if none is stored, initialize
+      // with a default instruction to obtain the item.  This mirrors the
+      // behaviour when adding new gear from guides.
+      `<textarea id="todo_${safe_id}">${item.todo || (item.name ? 'Obtain ' + item.name : '')}</textarea>`,
       `<input type="checkbox" id="done_${safe_id}" ${item.done ? "checked" : ""} onchange="updateProgress()" />`,
       deleteBtn
     ];
@@ -147,6 +810,16 @@ function resetTracker() {
 }
 
 function updateProgress() {
+  document.querySelectorAll("#equipment-table tbody tr").forEach(row => {
+    const checkbox = row.querySelector("input[type='checkbox'][id^='done_']");
+    if (checkbox && row.classList.contains("row-gearset")) {
+      if (checkbox.checked) {
+        row.style.backgroundColor = ""; // Reset
+      } else {
+        row.style.backgroundColor = "#6c1e1e"; // Dark red if not done
+      }
+    }
+  });
   saveProgress();
 }
 
@@ -158,14 +831,17 @@ function addNewItem() {
   if (!name) return alert("Item name is required.");
   const safe_id = (name + augments).replace(/[^a-zA-Z0-9]/g, '');
   const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+  const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
   const row = [
-    `<a href="${bg}" target="_blank">${name}</a>`,
+    // Include BG‑Wiki and AH links for consistency with gear set items.
+    `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;margin-left:4px;" title="Search FFXI AH">AH</a>`,
     slot,
     count,
     augments,
-    `<select id="location_${safe_id}"><option value="inventory">inventory</option></select>`,
-    `<select id="usage_${safe_id}"><option value=""> </option></select>`,
+    `<select id="location_${safe_id}"><option value="inventory">inventory</option><option value="safe">safe</option><option value="safe2">safe2</option><option value="storage">storage</option><option value="locker">locker</option><option value="satchel">satchel</option><option value="sack">sack</option><option value="case">case</option><option value="wardrobe">wardrobe</option><option value="wardrobe2">wardrobe2</option><option value="wardrobe3">wardrobe3</option><option value="wardrobe4">wardrobe4</option><option value="wardrobe5">wardrobe5</option><option value="wardrobe6">wardrobe6</option><option value="wardrobe7">wardrobe7</option><option value="wardrobe8">wardrobe8</option></select>`,
+    `<select id="usage_${safe_id}"><option value=""></option><option value="WAR">WAR</option><option value="MNK">MNK</option><option value="WHM">WHM</option><option value="BLM">BLM</option><option value="RDM">RDM</option><option value="THF">THF</option><option value="PLD">PLD</option><option value="DRK">DRK</option><option value="BST">BST</option><option value="BRD">BRD</option><option value="RNG">RNG</option><option value="SAM">SAM</option><option value="NIN">NIN</option><option value="DRG">DRG</option><option value="SMN">SMN</option><option value="BLU">BLU</option><option value="COR">COR</option><option value="PUP">PUP</option><option value="DNC">DNC</option><option value="SCH">SCH</option><option value="GEO">GEO</option><option value="RUN">RUN</option><option value="Other">Other</option></select>`,
     `<input type="text" id="upgrade_${safe_id}" />`,
+    // Pre‑populate to‑do with a generic obtain message.
     `<textarea id="todo_${safe_id}"></textarea>`,
     `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
     `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>`
@@ -226,13 +902,14 @@ function importGSExport() {
         const slot = slots[fullKey] || "";
         const safe_id = (name + aug).replace(/[^a-zA-Z0-9]/g, '');
         const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+        const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
         const row = [
-          `<a href="${bg}" target="_blank">${name}</a>`,
+          `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;margin-left:4px;" title="Search FFXI AH">AH</a>`,
           slot,
           count,
           aug,
-          `<select id="location_${safe_id}"><option value="inventory">inventory</option></select>`,
-          `<select id="usage_${safe_id}"><option value=""> </option></select>`,
+          `<select id="location_${safe_id}"><option value="inventory">inventory</option><option value="safe">safe</option><option value="safe2">safe2</option><option value="storage">storage</option><option value="locker">locker</option><option value="satchel">satchel</option><option value="sack">sack</option><option value="case">case</option><option value="wardrobe">wardrobe</option><option value="wardrobe2">wardrobe2</option><option value="wardrobe3">wardrobe3</option><option value="wardrobe4">wardrobe4</option><option value="wardrobe5">wardrobe5</option><option value="wardrobe6">wardrobe6</option><option value="wardrobe7">wardrobe7</option><option value="wardrobe8">wardrobe8</option></select>`,
+          `<select id="usage_${safe_id}"><option value=""></option><option value="WAR">WAR</option><option value="MNK">MNK</option><option value="WHM">WHM</option><option value="BLM">BLM</option><option value="RDM">RDM</option><option value="THF">THF</option><option value="PLD">PLD</option><option value="DRK">DRK</option><option value="BST">BST</option><option value="BRD">BRD</option><option value="RNG">RNG</option><option value="SAM">SAM</option><option value="NIN">NIN</option><option value="DRG">DRG</option><option value="SMN">SMN</option><option value="BLU">BLU</option><option value="COR">COR</option><option value="PUP">PUP</option><option value="DNC">DNC</option><option value="SCH">SCH</option><option value="GEO">GEO</option><option value="RUN">RUN</option><option value="Other">Other</option></select>`,
           `<input type="text" id="upgrade_${safe_id}" />`,
           `<textarea id="todo_${safe_id}"></textarea>`,
           `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
@@ -243,7 +920,8 @@ function importGSExport() {
     } else {
       // Update import
       rows.forEach(row => {
-        const name = row.cells[0]?.innerText?.trim();
+        const anchors = row.cells[0]?.querySelectorAll("a");
+    const name = anchors?.[0]?.textContent.trim();
         const augments = row.cells[3]?.innerText?.trim();
         const key = name + (augments ? "::" + augments : "");
         const safe_id = (name + augments).replace(/[^a-zA-Z0-9]/g, '');
@@ -262,13 +940,14 @@ function importGSExport() {
         const slot = slots[fullKey] || "";
         const safe_id = (name + aug).replace(/[^a-zA-Z0-9]/g, '');
         const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+        const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
         const row = [
-          `<a href="${bg}" target="_blank">${name}</a>`,
+          `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;margin-left:4px;" title="Search FFXI AH">AH</a>`,
           slot,
           count,
           aug,
-          `<select id="location_${safe_id}"><option value="inventory">inventory</option></select>`,
-          `<select id="usage_${safe_id}"><option value=""> </option></select>`,
+          `<select id="location_${safe_id}"><option value="inventory">inventory</option><option value="safe">safe</option><option value="safe2">safe2</option><option value="storage">storage</option><option value="locker">locker</option><option value="satchel">satchel</option><option value="sack">sack</option><option value="case">case</option><option value="wardrobe">wardrobe</option><option value="wardrobe2">wardrobe2</option><option value="wardrobe3">wardrobe3</option><option value="wardrobe4">wardrobe4</option><option value="wardrobe5">wardrobe5</option><option value="wardrobe6">wardrobe6</option><option value="wardrobe7">wardrobe7</option><option value="wardrobe8">wardrobe8</option></select>`,
+          `<select id="usage_${safe_id}"><option value=""></option><option value="WAR">WAR</option><option value="MNK">MNK</option><option value="WHM">WHM</option><option value="BLM">BLM</option><option value="RDM">RDM</option><option value="THF">THF</option><option value="PLD">PLD</option><option value="DRK">DRK</option><option value="BST">BST</option><option value="BRD">BRD</option><option value="RNG">RNG</option><option value="SAM">SAM</option><option value="NIN">NIN</option><option value="DRG">DRG</option><option value="SMN">SMN</option><option value="BLU">BLU</option><option value="COR">COR</option><option value="PUP">PUP</option><option value="DNC">DNC</option><option value="SCH">SCH</option><option value="GEO">GEO</option><option value="RUN">RUN</option><option value="Other">Other</option></select>`,
           `<input type="text" id="upgrade_${safe_id}" />`,
           `<textarea id="todo_${safe_id}"></textarea>`,
           `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
@@ -283,6 +962,189 @@ function importGSExport() {
   };
   reader.readAsText(fileInput.files[0]);
 }
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function previewGearSetItems(items, jobCode) {
+  const tbody = document.querySelector("#gearset-preview-table tbody");
+  tbody.innerHTML = "";
+  const existingNames = new Set();
+  table.rows().every(function() {
+    const row = this.node();
+    const raw = row.cells[0]?.querySelector("a")?.textContent || "";
+    const norm = normalizeName(raw);
+    if (norm) existingNames.add(norm);
+  });
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const tr = document.createElement("tr");
+    const isExisting = existingNames.has(normalizeName(name));
+    tr.className = isExisting ? "preview-existing" : "preview-new";
+    tr.setAttribute("data-existing", isExisting ? "1" : "0");
+    tr.innerHTML = `
+      <td><input type="checkbox" id="check_${safe_id}" /></td>
+      <td><a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function renderGearSetPreview(items) {
+  const tbody = document.querySelector("#gearset-preview-table tbody");
+  tbody.innerHTML = "";
+  items.forEach(name => {
+    const safe_id = name.replace(/[^a-zA-Z0-9]/g, '');
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const tr = document.createElement("tr");
+    tr.className = "preview-new";
+    tr.setAttribute("data-existing", "0");
+    tr.setAttribute("data-name", normalizeName(name));
+    tr.innerHTML = `
+      <td><input type="checkbox" id="check_${safe_id}" /></td>
+      <td><a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function highlightExistingInPreview() {
+  const existingNormalized = new Set();
+  table.rows().every(function() {
+    const row = this.node();
+    const anchor = row.cells[0]?.querySelector("a");
+    if (anchor) {
+      const name = anchor.textContent.trim();
+      const norm = normalizeName(name);
+      existingNormalized.add(norm);
+    }
+  });
+
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const norm = tr.getAttribute("data-name");
+    if (existingNormalized.has(norm)) {
+      tr.classList.remove("preview-new");
+      tr.classList.add("preview-existing");
+      tr.setAttribute("data-existing", "1");
+    }
+  });
+}
+
+function previewGearSetItems(items, jobCode) {
+  renderGearSetPreview(items);
+  highlightExistingInPreview();
+}
+
+function filterPreview() {
+  const showOnlyMissing = document.getElementById("onlyMissing").checked;
+  document.querySelectorAll("#gearset-preview-table tbody tr").forEach(tr => {
+    const isExisting = tr.getAttribute("data-existing") === "1";
+    tr.style.display = showOnlyMissing && isExisting ? "none" : "";
+  });
+}
+
+function selectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = true);
+}
+
+function deselectAllPreview() {
+  document.querySelectorAll("#gearset-preview-table input[type=checkbox]").forEach(cb => cb.checked = false);
+}
+
+
+function applySelectedGearItems() {
+  const checkboxes = document.querySelectorAll("#gearset-preview-table input[type=checkbox]:checked");
+  checkboxes.forEach(cb => {
+    const id = cb.id.replace("check_", "");
+    const label = cb.parentElement.nextElementSibling.innerText.trim();
+    const name = label.split(" AH")[0];
+    const safe_id = id;
+    const bg = `https://www.bg-wiki.com/ffxi/${name.replace(/ /g, "_").replace(/'/g, "%27")}`;
+    const ffxiah = `https://www.ffxiah.com/search/item?q=${encodeURIComponent(name)}`;
+    const row = [
+      `<a href="${bg}" target="_blank">${name}</a> <a href="${ffxiah}" target="_blank" style="font-size:0.8em;">AH</a>`,
+      '',
+      1,
+      '',
+      `<select id="location_${safe_id}">${locationOptions}</select>`,
+      `<select id="usage_${safe_id}">${usageOptions}</select>`,
+      `<input type="text" id="upgrade_${safe_id}" />`,
+      `<textarea id="todo_${safe_id}"></textarea>`,
+      `<input type="checkbox" id="done_${safe_id}" onchange="updateProgress()" />`,
+      `<button id="delete_${safe_id}" onclick="deleteManualItem('${safe_id}')">Delete</button>`
+    ];
+    const newRow = table.row.add(row).draw().node();
+    newRow.classList.add("row-gearset");
+    newRow.setAttribute("data-source", "gearset");
+    if (!document.getElementById(`done_${safe_id}`).checked) {
+      newRow.style.backgroundColor = "#6c1e1e"; // dark red
+    }
+    document.getElementById(`todo_${safe_id}`).value = "Obtain " + name;
+  });
+  saveProgress();
+  document.getElementById("save-status").textContent = "Gearset items added ✓";
+setTimeout(() => document.getElementById("save-status").textContent = "", 3000);
+}
+
 </script>
 </body>
 </html>
